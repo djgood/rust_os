@@ -124,12 +124,14 @@ lazy_static! {
     });
 }
 
+#[macro_export]
 macro_rules! println {
         () => (print!("\n"));
         ($fmt:expr) => (print!(concat!($fmt, "\n")));
         ($fmt:expr, $($arg:tt)*) => (print!(concat!($fmt, "\n"), $($arg)*));
 }
 
+#[macro_export]
 macro_rules! print {
         ($($arg:tt)*) => ($crate::vga_buffer::print(format_args!($($arg)*)));
 }
@@ -219,6 +221,30 @@ mod test {
                     // Verify the rest of the line is blank
                     assert_eq!(screen_char.ascii_character, b' ');
                     assert_eq!(screen_char.color_code, writer.color_code);
+                } else {
+                    assert_eq!(screen_char, empty_char());
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn write_unicode() {
+        use core::fmt::Write;
+
+        let mut writer = construct_writer();
+        writeln!(&mut writer, "æ").unwrap();
+
+        for (i, row) in writer.buffer.chars.iter().enumerate() {
+            for (j, screen_char) in row.iter().enumerate() {
+                let screen_char = screen_char.read();
+                
+                if i == BUFFER_HEIGHT - 2 && (j == 0 || j == 1) {
+                    assert_eq!(screen_char.ascii_character, 0xfe);
+                    assert_eq!(screen_char.color_code, writer.color_code);
+                } else if i == BUFFER_HEIGHT - 2 {
+                    // Verify the rest of the line is blank
+                    assert_eq!(screen_char.ascii_character, b' ');
                 } else {
                     assert_eq!(screen_char, empty_char());
                 }

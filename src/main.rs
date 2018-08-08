@@ -1,5 +1,4 @@
 #![feature(panic_implementation)]
-#![feature(exclusive_range_pattern)]
 #![no_std]
 
 // The Rust test framework injects it's own main
@@ -8,21 +7,9 @@
 #![cfg_attr(test, allow(dead_code, unused_macros, unused_imports))]
 
 #[macro_use]
-extern crate lazy_static;
-
-extern crate bootloader_precompiled;
-extern crate volatile;
-extern crate spin;
-
-#[cfg(test)]
-extern crate std;
-#[cfg(test)]
-extern crate array_init;
+extern crate rust_os;
 
 use core::panic::PanicInfo;
-
-#[macro_use]
-mod vga_buffer;
 
 // This function is called on panic.
 // It is ignored during testing since tests are compiled for the host machine,
@@ -38,7 +25,7 @@ pub fn panic(info: &PanicInfo) -> ! {
 #[cfg(not(test))] // The Rust test framework injects it's own _start
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    println!("Hello World{}", "!");
-    panic!("Panic at the disco");
-}
+    println!("Hello World{}", "!"); // print to VGA buffer
 
+    loop {}
+}
